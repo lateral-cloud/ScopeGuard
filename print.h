@@ -15,7 +15,7 @@ namespace _print_details
 	template <class T, class = void>
 	struct _printer
 	{
-		static void print(std::ostream& os, T const& t) { os << t; }
+		static void print(std::wostream& os, T const& t) { os << t; }
 
 		using is_default_print = std::true_type;
 	};
@@ -24,7 +24,7 @@ namespace _print_details
 	struct _is_default_printable : std::false_type {};
 
 	template <class T>
-	struct _is_default_printable<T, std::void_t<std::pair<typename _printer<T>::is_default_print, decltype(std::declval<std::ostream&>() << std::declval<T const&>())>>> : std::true_type {};
+	struct _is_default_printable<T, std::void_t<std::pair<typename _printer<T>::is_default_print, decltype(std::declval<std::wostream&>() << std::declval<T const&>())>>> : std::true_type {};
 
 	template <class T, class = void>
 	struct _is_printer_printable : std::true_type {};
@@ -121,7 +121,7 @@ namespace _print_details
 	};
 
 	template <class T, class U>
-	struct _enable_if_has_print<T, U, std::void_t<decltype(std::declval<T const&>().do_print(std::declval<std::ostream&>()))>>
+	struct _enable_if_has_print<T, U, std::void_t<decltype(std::declval<T const&>().do_print(std::declval<std::wostream&>()))>>
 	{
 		using type = U;
 	};
@@ -204,7 +204,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T>::type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			t.do_print(os);
 		}
@@ -213,7 +213,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_iterable<T, typename _enable_if_c_str<T, typename _enable_if_string<T, typename _enable_if_map<T>::not_type>::not_type>::not_type>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << "{";
 			bool once = false;
@@ -231,7 +231,7 @@ namespace _print_details
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_tuple<T, typename _enable_if_iterable<T>::not_type>::type>::not_type>
 	{
 		template <std::size_t ...Is>
-		static void _unrolled_print(std::ostream& os, T const& t, std::index_sequence<Is...>)
+		static void _unrolled_print(std::wostream& os, T const& t, std::index_sequence<Is...>)
 		{
 			os << "{";
 			((_printer<_rmcvref_t<std::tuple_element_t<Is, T>>>::print(os, std::get<Is>(t)), os << ", "), ...);
@@ -239,7 +239,7 @@ namespace _print_details
 			os << "}";
 		}
 
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			_unrolled_print(os, t, std::make_index_sequence<(std::max)(static_cast<std::size_t>(1), std::tuple_size_v<T>) - 1>{});
 		}
@@ -248,7 +248,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_glmvec<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << "{";
 			bool once = false;
@@ -265,7 +265,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_glmmat<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << "{";
 			bool once = false;
@@ -282,7 +282,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_map<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << "{";
 			bool once = false;
@@ -301,7 +301,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_string<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << std::quoted(t);
 		}
@@ -310,7 +310,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_c_str<T>::type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			os << t;
 		}
@@ -319,7 +319,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_char<T>::type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			T s[4] = { T('\''), t, T('\''), T('\0') };
 			os << s;
@@ -329,7 +329,7 @@ namespace _print_details
 	template <>
 	struct _printer<std::nullptr_t, void>
 	{
-		static void print(std::ostream& os, std::nullptr_t const&)
+		static void print(std::wostream& os, std::nullptr_t const&)
 		{
 			os << "nullptr";
 		}
@@ -338,7 +338,7 @@ namespace _print_details
 	template <>
 	struct _printer<std::nullopt_t, void>
 	{
-		static void print(std::ostream& os, std::nullopt_t const&)
+		static void print(std::wostream& os, std::nullopt_t const&)
 		{
 			os << "nullopt";
 		}
@@ -347,7 +347,7 @@ namespace _print_details
 	template <>
 	struct _printer<std::monostate, void>
 	{
-		static void print(std::ostream& os, std::monostate const&)
+		static void print(std::wostream& os, std::monostate const&)
 		{
 			os << "monostate";
 		}
@@ -356,7 +356,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_optional<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			if (t.has_value()) _printer<typename T::value_type>::print(os, *t);
 			else _printer<std::nullopt_t>::print(os, std::nullopt);
@@ -366,7 +366,7 @@ namespace _print_details
 	template <class T>
 	struct _printer<T, typename _enable_if_has_print<T, typename _enable_if_variant<T>::type>::not_type>
 	{
-		static void print(std::ostream& os, T const& t)
+		static void print(std::wostream& os, T const& t)
 		{
 			std::visit([&](auto const& v) { _printer<_rmcvref_t<decltype(v)>>::print(os, v); }, t);
 		}
@@ -375,7 +375,7 @@ namespace _print_details
 	template <>
 	struct _printer<bool, void>
 	{
-		static void print(std::ostream& os, bool const& t)
+		static void print(std::wostream& os, bool const& t)
 		{
 			if (t) os << "true";
 			else os << "false";
@@ -383,7 +383,7 @@ namespace _print_details
 	};
 
 	template <class T0, class ...Ts>
-	void fprint(std::ostream& os, T0 const& t0, Ts const &...ts)
+	void fprint(std::wostream& os, T0 const& t0, Ts const &...ts)
 	{
 		_printer<_rmcvref_t<T0>>::print(os, t0);
 		((os << " ", _printer<_rmcvref_t<Ts>>::print(os, ts)), ...);
@@ -391,7 +391,7 @@ namespace _print_details
 	}
 
 	template <class T0, class ...Ts>
-	void fprintnl(std::ostream& os, T0 const& t0, Ts const &...ts)
+	void fprintnl(std::wostream& os, T0 const& t0, Ts const &...ts)
 	{
 		_printer<_rmcvref_t<T0>>::print(os, t0);
 		(_printer<_rmcvref_t<Ts>>::print(os, ts), ...);
@@ -400,31 +400,31 @@ namespace _print_details
 	template <class T0, class ...Ts>
 	void print(T0 const& t0, Ts const &...ts)
 	{
-		fprint(std::cout, t0, ts...);
+		fprint(std::wcout, t0, ts...);
 	}
 
 	template <class T0, class ...Ts>
 	void printnl(T0 const& t0, Ts const &...ts)
 	{
-		fprintnl(std::cout, t0, ts...);
+		fprintnl(std::wcout, t0, ts...);
 	}
 
 	template <class T0, class ...Ts>
 	void eprint(T0 const& t0, Ts const &...ts)
 	{
-		fprint(std::cerr, t0, ts...);
+		fprint(std::wcerr, t0, ts...);
 	}
 
 	template <class T0, class ...Ts>
 	void eprintnl(T0 const& t0, Ts const &...ts)
 	{
-		fprintnl(std::cerr, t0, ts...);
+		fprintnl(std::wcerr, t0, ts...);
 	}
 
 	template <class T0, class ...Ts>
-	std::string to_string(T0 const& t0, Ts const &...ts)
+	std::wstring to_string(T0 const& t0, Ts const &...ts)
 	{
-		std::ostringstream oss;
+		std::wostringstream oss;
 		fprint(oss, t0, ts...);
 		return oss.str();
 	}
@@ -437,7 +437,7 @@ namespace _print_details
 	public:
 		explicit constexpr print_adaptor(T const& t_) : t(t_) {}
 
-		friend std::ostream& operator<<(std::ostream& os, print_adaptor const&& self)
+		friend std::wostream& operator<<(std::wostream& os, print_adaptor const&& self)
 		{
 			auto oldflags = os.flags();
 			os << "[object 0x" << std::hex << reinterpret_cast<std::uintptr_t>(
@@ -455,7 +455,7 @@ namespace _print_details
 	public:
 		explicit constexpr print_adaptor(T const& t_) : t(t_) {}
 
-		friend std::ostream& operator<<(std::ostream& os, print_adaptor const&& self)
+		friend std::wostream& operator<<(std::wostream& os, print_adaptor const&& self)
 		{
 			fprintnl(os, self.t);
 			return os;
@@ -472,7 +472,7 @@ namespace _print_details
 
 		explicit as_hex(T value) : m_value(std::move(value)) {}
 
-		void do_print(std::ostream& os) const
+		void do_print(std::wostream& os) const
 		{
 			auto tmp = os.flags();
 			os << "0x" << std::hex << print_adaptor(m_value);
